@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CalendarQ — License Server Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="loginSection" class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">📆</div>
+      <h1 class="login-title">CalendarQ Admin</h1>
+      <p class="login-subtitle">Masuk untuk mengelola lisensi & perangkat</p>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" class="form-input" placeholder="admin" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          Masuk ke Dashboard 🔐
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dashboardSection" class="app-container" style="display: none;">
+    <!-- Top Navbar -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <span class="nav-logo">📆</span>
+        <div>
+          <div class="nav-title">CalendarQ License Server</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Self-Hosted Licensing Portal</div>
+        </div>
+        <span class="nav-tag">v1.0.0</span>
+      </div>
+      <div class="nav-actions">
+        <div class="user-badge">
+          👤 <span id="adminUsername">admin</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btnChangePass">Ganti Password</button>
+        <button class="btn btn-danger btn-sm" id="btnLogout">Keluar 🚪</button>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tabBtnLicenses" onclick="switchTab('licenses')">
+        🔑 Manajemen Lisensi
+      </button>
+      <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">
+        🛒 Pesanan Masuk (<span id="tabOrderCount" style="color:var(--danger); font-weight:bold;">0</span>)
+      </button>
+      <button class="tab-btn" id="tabBtnUsers" onclick="switchTab('users')">
+        👥 Data Pemakai (<span id="tabUserCount">0</span>)
+      </button>
+      <button class="tab-btn" id="tabBtnSettings" onclick="switchTab('settings')">
+        ⚙️ Pengaturan Sistem
+      </button>
+    </div>
+
+    <!-- VIEW 1: LICENSES -->
+    <div id="viewLicenses">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">
+            <span>TOTAL LISENSI</span>
+            <span>🔑</span>
+          </div>
+          <div class="stat-value" id="statTotalLicenses">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <span>LISENSI AKTIF</span>
+            <span>✅</span>
+          </div>
+          <div class="stat-value" id="statActiveLicenses" style="color: var(--success);">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <span>PERANGKAT TERHUBUNG</span>
+            <span>💻</span>
+          </div>
+          <div class="stat-value" id="statTotalActivations" style="color: #818cf8;">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <span>KEDALUWARSA / SUSPEND</span>
+            <span>⚠️</span>
+          </div>
+          <div class="stat-value" id="statSuspended" style="color: var(--warning);">0</div>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <div class="search-filters">
+          <input type="text" id="searchInput" class="form-input input-search" placeholder="🔍 Cari key, nama klien, email, atau no. WA...">
+          <select id="statusFilter" class="form-select" style="max-width: 150px;">
+            <option value="">Semua Status</option>
+            <option value="active">Aktif</option>
+            <option value="suspended">Ditangguhkan</option>
+            <option value="expired">Kedaluwarsa</option>
+          </select>
+          <button id="btnRefresh" class="btn-icon" title="Refresh Data">🔄</button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnOpenBatchModal" class="btn btn-secondary">
+            📦 Generate Massal (Batch)
+          </button>
+          <button id="btnOpenCreateModal" class="btn btn-primary">
+            + Buat Lisensi Baru ✨
+          </button>
+        </div>
+      </div>
+
+      <!-- Licenses Table -->
+      <div class="table-card">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>License Key</th>
+                <th>Data Klien</th>
+                <th>Tipe</th>
+                <th>Perangkat</th>
+                <th>Masa Berlaku</th>
+                <th>Status</th>
+                <th style="text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="licenseTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  Memuat data lisensi...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: ORDERS INBOX -->
+    <div id="viewOrders" style="display: none;">
+      <div class="action-bar">
+        <h3>🛒 Pesanan Masuk (Order Inbox)</h3>
+        <button id="btnRefreshOrders" class="btn-icon" title="Refresh Data">🔄</button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Data Pemesan</th>
+                <th>Paket Dipilih</th>
+                <th>Bukti Transfer</th>
+                <th>Status</th>
+                <th style="text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  Memuat pesanan...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: APP USERS (INSTALLATIONS) -->
+    <div id="viewUsers" style="display: none;">
+      <!-- Users Action Bar -->
+      <div class="action-bar">
+        <div class="search-filters">
+          <input type="text" id="userSearchInput" class="form-input input-search" placeholder="🔍 Cari nama pemakai, email Gmail, atau nama PC...">
+          <select id="userStatusFilter" class="form-select" style="max-width: 160px;">
+            <option value="">Semua Status</option>
+            <option value="trial">Masa Trial</option>
+            <option value="active">Berlisensi (Aktif)</option>
+            <option value="expired">Trial Expired</option>
+          </select>
+          <button id="btnRefreshUsers" class="btn-icon" title="Refresh Data">🔄</button>
+        </div>
+        <div>
+          <button id="btnExportUsersCsv" class="btn btn-secondary">
+            📥 Unduh Data CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="table-card">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Pemakai</th>
+                <th>Email (Gmail)</th>
+                <th>Perangkat (PC)</th>
+                <th>Status</th>
+                <th>License Key</th>
+                <th>Terakhir Aktif</th>
+                <th style="text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  Memuat data pemakai...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: SETTINGS -->
+    <div id="viewSettings" style="display: none;">
+      <div class="action-bar">
+        <h3>⚙️ Pengaturan Sistem & Informasi Aplikasi</h3>
+      </div>
+      <div class="table-card" style="padding: 24px; text-align: left;">
+        <form id="settingsForm">
+          <h4 style="margin-top: 0; color: var(--accent);">📬 Kontak & Dukungan</h4>
+          <div class="form-group" style="max-width: 400px;">
+            <label class="form-label">Email Admin (Untuk tombol pembelian dan bantuan) *</label>
+            <input type="email" id="setAdminEmail" class="form-input" required>
+          </div>
+          
+          <h4 style="margin-top: 30px; color: var(--accent);">💳 Informasi Pembayaran Transfer</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px;">
+            <div class="form-group">
+              <label class="form-label">Nama Bank (opsional)</label>
+              <input type="text" id="setBankName" class="form-input" placeholder="contoh: BCA / Mandiri">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nomor Rekening (opsional)</label>
+              <input type="text" id="setBankAccount" class="form-input" placeholder="contoh: 1234567890">
+            </div>
+          </div>
+          <div class="form-group" style="max-width: 600px;">
+            <label class="form-label">Atas Nama Rekening (opsional)</label>
+            <input type="text" id="setBankOwner" class="form-input" placeholder="contoh: PT. Maju / Bpk. Fulan">
+          </div>
+
+          <h4 style="margin-top: 30px; color: var(--accent);">📦 Harga Paket Lisensi (Order Web)</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px;">
+            <div class="form-group">
+              <label class="form-label">Harga Paket Tahunan (Rp)</label>
+              <input type="number" id="setPriceAnnual" class="form-input" placeholder="50000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Harga Paket Lifetime (Rp)</label>
+              <input type="number" id="setPriceLifetime" class="form-input" placeholder="150000">
+            </div>
+          </div>
+
+          <h4 style="margin-top: 30px; color: var(--accent);">🚀 Update & Pengumuman</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px;">
+            <div class="form-group">
+              <label class="form-label">Versi Aplikasi Terbaru</label>
+              <input type="text" id="setLatestVersion" class="form-input" placeholder="1.0.0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Link Download Update (Opsional)</label>
+              <input type="url" id="setUpdateLink" class="form-input" placeholder="https://drive.google.com/...">
+            </div>
+          </div>
+          <div class="form-group" style="max-width: 600px;">
+            <label class="form-label">Pesan Pengumuman / Banner (Opsional)</label>
+            <textarea id="setAnnouncement" class="form-textarea" rows="3" placeholder="Tuliskan info promo atau peringatan untuk seluruh pengguna..."></textarea>
+          </div>
+
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+          <button type="submit" class="btn btn-primary">
+            💾 Simpan Pengaturan
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: BUAT LISENSI BARU -->
+  <div id="createModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">✨ Buat Lisensi Baru</div>
+        <button class="btn-icon" onclick="closeModal('createModal')">✕</button>
+      </div>
+      <form id="createLicenseForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nama Klien / Pembeli *</label>
+            <input type="text" id="newClientName" class="form-input" placeholder="contoh: PT Maju Jaya / Bpk. Ahmad" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Email (Opsional)</label>
+              <input type="email" id="newClientEmail" class="form-input" placeholder="klien@gmail.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">WhatsApp (Opsional)</label>
+              <input type="text" id="newClientPhone" class="form-input" placeholder="0812xxxxxxxx">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Tipe Lisensi</label>
+              <select id="newLicenseType" class="form-select">
+                <option value="lifetime">Lifetime (Selamanya)</option>
+                <option value="annual">Berlangganan (Tahunan)</option>
+              </select>
+            </div>
+            <div class="form-group" id="durationWrap" style="display: none;">
+              <label class="form-label">Durasi Langganan</label>
+              <select id="newDuration" class="form-select">
+                <option value="6">6 Bulan</option>
+                <option value="12" selected>12 Bulan (1 Tahun)</option>
+                <option value="24">24 Bulan (2 Tahun)</option>
+              </select>
+            </div>
+            <div class="form-group" id="maxPcWrap">
+              <label class="form-label">Batas Perangkat (PC)</label>
+              <input type="number" id="newMaxActivations" class="form-input" value="2" min="1" max="100" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Custom Key (Kosongkan untuk generate otomatis)</label>
+            <input type="text" id="newCustomKey" class="form-input" placeholder="Contoh: CQ-PREMIUM-2026-X1Y2">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Catatan Admin</label>
+            <textarea id="newNotes" class="form-textarea" rows="2" placeholder="Catatan transaksi atau invoice..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan & Terbitkan 🚀</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SUCCESS CREATE LICENSE -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 450px; text-align: center;">
+      <div class="modal-header">
+        <div class="modal-title">🎉 Lisensi Berhasil Dibuat!</div>
+        <button class="btn-icon" onclick="closeModal('successModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size: 40px; margin-bottom: 10px;">✨</div>
+        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">License Key untuk <strong id="successClientName"></strong>:</div>
+        <div style="margin-bottom: 16px;">
+          <code id="successLicenseKey" class="key-badge" style="font-size: 18px; padding: 12px; display: inline-block;"></code>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
+          Kirimkan key ini kepada pelanggan agar mereka bisa mengaktifkan aplikasinya.
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button type="button" class="btn btn-secondary" onclick="copySuccessKey()">📋 Salin Key</button>
+          <button type="button" class="btn btn-primary" id="btnEmailSuccessKey">📧 Kirim via Email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETAIL PERANGKAT (ACTIVATIONS) -->
+  <div id="devicesModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">💻 Perangkat Aktif</div>
+        <button class="btn-icon" onclick="closeModal('devicesModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 14px; font-size: 13px; color: var(--text-secondary);">
+          Key: <code id="deviceModalKey" class="key-badge"></code>
+        </div>
+        <div id="devicesList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('devicesModal')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GANTI PASSWORD -->
+  <div id="passwordModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🔒 Ganti Password Admin</div>
+        <button class="btn-icon" onclick="closeModal('passwordModal')">✕</button>
+      </div>
+      <form id="changePassForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Password Saat Ini</label>
+            <input type="password" id="curPass" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password Baru (min 6 karakter)</label>
+            <input type="password" id="newPass" class="form-input" minlength="6" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('passwordModal')">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Password Baru</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PROOF IMAGE PREVIEW -->
+  <div id="proofModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">🖼️ Bukti Transfer</div>
+        <button class="btn-icon" onclick="closeModal('proofModal')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 0;">
+        <img id="proofModalImg" src="" alt="Bukti Transfer" style="max-width: 100%; max-height: 70vh; display: block; margin: 0 auto; border-radius: 4px;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('proofModal')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: BATCH GENERATE KEYS -->
+  <div id="batchModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title">📦 Generate Lisensi Massal (Batch)</div>
+        <button class="btn-icon" onclick="closeModal('batchModal')">✕</button>
+      </div>
+      <form id="batchLicenseForm">
+        <div class="modal-body">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Jumlah Key (1 - 100) *</label>
+              <input type="number" id="batchCount" class="form-input" value="10" min="1" max="100" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prefix / Label Batch *</label>
+              <input type="text" id="batchPrefix" class="form-input" placeholder="contoh: Promo Shopee" required>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Tipe Lisensi</label>
+              <select id="batchLicenseType" class="form-select">
+                <option value="lifetime">Lifetime (Selamanya)</option>
+                <option value="annual">Berlangganan (Tahunan)</option>
+              </select>
+            </div>
+            <div class="form-group" id="batchDurationWrap" style="display: none;">
+              <label class="form-label">Durasi Langganan</label>
+              <select id="batchDuration" class="form-select">
+                <option value="6">6 Bulan</option>
+                <option value="12" selected>12 Bulan (1 Tahun)</option>
+                <option value="24">24 Bulan (2 Tahun)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batas Perangkat (PC)</label>
+              <input type="number" id="batchMaxPc" class="form-input" value="2" min="1" max="100" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Catatan Admin</label>
+            <textarea id="batchNotes" class="form-textarea" rows="2" placeholder="Catatan batch/distributor..."></textarea>
+          </div>
+
+          <!-- Result box shown after generation -->
+          <div id="batchResultWrap" style="display: none; margin-top: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--success);">🎉 Hasil Generate (<span id="batchResultCount">0</span> Keys):</span>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnCopyAllBatch">📋 Salin Semua</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadBatch">💾 Unduh TXT</button>
+              </div>
+            </div>
+            <textarea id="batchResultArea" class="form-textarea" rows="6" readonly style="font-family: monospace; font-size: 12px;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('batchModal')">Tutup</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitBatch">Mulai Generate ⚡</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

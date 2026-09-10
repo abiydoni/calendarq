@@ -1,0 +1,78 @@
+{
+  "name": "calendarq",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "traversal@1.0.0",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite --port 5173\" \"wait-on tcp:5173 && cross-env ELECTRON_DEV=1 VITE_PORT=5173 electron .\"",
+    "electron:start": "electron .",
+    "electron:build": "vite build && electron-builder",
+    "server": "cross-env ELECTRON_RUN_AS_NODE=1 electron ./server/server.js",
+    "key:gen": "cross-env ELECTRON_RUN_AS_NODE=1 electron ./server/generate-key.js"
+  },
+  "build": {
+    "appId": "com.calendarq.app",
+    "productName": "CalendarQ",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CalendarQ",
+      "include": "build/installer.nsh"
+    }
+  },
+  "dependencies": {
+    "date-fns": "^4.4.0",
+    "date-holidays": "^3.36.1",
+    "electron-store": "^11.0.2",
+    "i18next": "^26.4.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-i18next": "^17.0.13",
+    "react-icons": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
+    "oxlint": "^1.79.0",
+    "vite": "^8.2.2",
+    "wait-on": "^9.1.0"
+  }
+}

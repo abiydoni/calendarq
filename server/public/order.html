@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembelian Lisensi CalendarQ</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .order-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      color: var(--accent);
+      font-size: 24px;
+    }
+    .package-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .pkg-card {
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .pkg-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+    .pkg-card.selected {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.1);
+    }
+    .pkg-name { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+    .pkg-price { color: var(--accent); font-weight: 700; font-size: 18px; }
+    
+    .bank-info {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .bank-info h3 { margin: 0 0 8px 0; font-size: 14px; color: var(--text-secondary); }
+    .bank-info .account { font-size: 20px; font-weight: 700; font-family: monospace; color: #fff; letter-spacing: 1px;}
+    
+    #previewImg {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+    }
+    .success-msg {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="order-container" id="orderWrap">
+    <div class="header">
+      <h1>📆 Beli Lisensi CalendarQ</h1>
+      <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Silakan pilih paket dan unggah bukti transfer</p>
+    </div>
+    
+    <div id="loading" style="text-align: center; padding: 20px; color: var(--text-muted);">Memuat data...</div>
+    
+    <form id="orderForm" style="display: none;">
+      <div class="package-cards" id="packagesWrap">
+        <!-- Rendered by JS -->
+      </div>
+      
+      <div class="bank-info" id="bankWrap">
+        <!-- Rendered by JS -->
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap *</label>
+        <input type="text" id="clientName" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email (Untuk pengiriman lisensi) *</label>
+        <input type="email" id="clientEmail" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Unggah Bukti Transfer *</label>
+        <input type="file" id="proofFile" class="form-input" accept="image/*" required>
+        <img id="previewImg" alt="Preview Bukti">
+      </div>
+      
+      <button type="submit" id="btnSubmit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 16px;">
+        Kirim Pemesanan 🚀
+      </button>
+    </form>
+  </div>
+  
+  <div class="order-container success-msg" id="successWrap">
+    <div style="font-size: 50px; margin-bottom: 16px;">✅</div>
+    <h2 style="margin: 0 0 12px 0;">Terima Kasih!</h2>
+    <p style="color: var(--text-secondary); line-height: 1.5; margin: 0;">
+      Pesanan dan bukti pembayaran Anda telah kami terima. Kami akan segera memprosesnya. License Key akan dikirimkan ke Email Anda.
+    </p>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="order.js"></script>
+</body>
+</html>

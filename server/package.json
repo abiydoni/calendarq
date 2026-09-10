@@ -1,0 +1,25 @@
+{
+  "name": "calendarq-license-server",
+  "version": "1.0.0",
+  "description": "Self-hosted licensing server & admin dashboard for CalendarQ",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/test-license-flow.js",
+    "key:generate": "node generate-key.js",
+    "key:batch": "node generate-key.js --batch 10"
+  },
+  "keywords": [
+    "license-server",
+    "calendarq",
+    "self-hosted",
+    "sqlite"
+  ],
+  "author": "CalendarQ",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7"
+  }
+}
