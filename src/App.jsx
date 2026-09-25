@@ -741,7 +741,10 @@ function App() {
         onChangeSize={handleChangeSize}
         licenseStatus={licenseStatus}
         licenseKey={licenseKey}
-        onOpenLicense={() => setIsLicenseOpen(true)}
+        onOpenLicense={() => {
+          setIsSettingsOpen(false);
+          setIsLicenseOpen(true);
+        }}
       />
       <AboutModal
         isOpen={isAboutOpen}
@@ -757,16 +760,19 @@ function App() {
         licenseInfo={licenseStatus?.info}
         systemSettings={systemSettings}
         onActivated={async () => {
+          setIsLicenseOpen(false);
+          setIsSettingsOpen(false);
+          setIsOnboardingOpen(false);
           const status = await window.electronAPI?.licenseCheck();
           setLicenseStatus(status);
           setLicenseKey(status?.key || null);
-          setIsLicenseOpen(false);
         }}
         onDeactivate={async () => {
+          setIsLicenseOpen(false);
+          setIsSettingsOpen(false);
           const status = await window.electronAPI?.licenseCheck();
           setLicenseStatus(status);
           setLicenseKey(status?.key || null);
-          setIsLicenseOpen(false);
         }}
       />
       <OnboardingModal

@@ -139,7 +139,7 @@ export function handleCreateLicense(body) {
   );
 
   const created = db.prepare('SELECT * FROM licenses WHERE id = ?').get(result.lastInsertRowid);
-  return { status: 201, data: { success: true, license: created } };
+  return { status: 201, data: { success: true, license: { ...created, key: created.license_key } } };
 }
 
 export function handleUpdateLicense(id, body) {

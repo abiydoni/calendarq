@@ -29,6 +29,19 @@ window.closeModal = function(id) {
   document.getElementById(id).classList.remove('open');
 };
 
+// Client-side Key Generator Helper: CQ-XXXX-XXXX-XXXX
+function generateClientKey(prefix = 'CQ') {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const seg = () => {
+    let s = '';
+    for (let i = 0; i < 4; i++) {
+      s += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return s;
+  };
+  return `${prefix}-${seg()}-${seg()}-${seg()}`;
+}
+
 // API Fetch Helper with Auth
 async function apiFetch(endpoint, options = {}) {
   const headers = {
@@ -335,7 +348,12 @@ document.getElementById('btnLogout').addEventListener('click', () => {
 document.getElementById('btnOpenCreateModal').addEventListener('click', () => {
   document.getElementById('createLicenseForm').reset();
   document.getElementById('durationWrap').style.display = 'none';
+  document.getElementById('newCustomKey').value = generateClientKey('CQ');
   openModal('createModal');
+});
+
+document.getElementById('btnRegenerateKey').addEventListener('click', () => {
+  document.getElementById('newCustomKey').value = generateClientKey('CQ');
 });
 
 document.getElementById('newLicenseType').addEventListener('change', (e) => {
@@ -367,7 +385,7 @@ document.getElementById('createLicenseForm').addEventListener('submit', async (e
     loadDashboardData();
 
     // Show Success Modal
-    const newKey = res.data.license.key;
+    const newKey = res.data.license?.license_key || res.data.license?.key || '';
     const clientEmail = body.client_email;
     const clientName = body.client_name;
     
@@ -507,7 +525,32 @@ document.getElementById('searchInput').addEventListener('input', () => {
 document.getElementById('statusFilter').addEventListener('change', loadLicenses);
 document.getElementById('btnRefresh').addEventListener('click', loadDashboardData);
 
-// ────────────────── User Management (Data Pemakai) ──────────────────
+// ────────────────── Tab Switching ──────────────────
+window.switchTab = function(tab) {
+  const btnLicenses = document.getElementById('tabBtnLicenses');
+  const btnOrders = document.getElementById('tabBtnOrders');
+  const btnUsers = document.getElementById('tabBtnUsers');
+  const btnSettings = document.getElementById('tabBtnSettings');
+
+  const viewLicenses = document.getElementById('viewLicenses');
+  const viewOrders = document.getElementById('viewOrders');
+  const viewUsers = document.getElementById('viewUsers');
+  const viewSettings = document.getElementById('viewSettings');
+
+  if (tab === 'licenses') {
+    btnLicenses.classList.add('active');
+    btnOrders.classList.remove('active');
+    btnUsers.classList.remove('active');
+    btnSettings.classList.remove('active');
+    viewLicenses.style.display = 'block';
+    viewOrders.style.display = 'none';
+    viewUsers.style.display = 'none';
+    viewSettings.style.display = 'none';
+    loadLicenses();
+  } else if (tab === 'users') {
+    btnUsers.classList.add('active');
+    btnLicenses.classList.remove('active');
+    btnOrders.classList.remove('active');
     btnSettings.classList.remove('active');
     viewUsers.style.display = 'block';
     viewLicenses.style.display = 'none';
@@ -635,6 +678,7 @@ window.upgradeUser = function(name, email) {
   document.getElementById('durationWrap').style.display = 'none';
   document.getElementById('newClientName').value = name || '';
   document.getElementById('newClientEmail').value = email || '';
+  document.getElementById('newCustomKey').value = generateClientKey('CQ');
   openModal('createModal');
 };
 

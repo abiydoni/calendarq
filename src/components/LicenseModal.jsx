@@ -46,7 +46,9 @@ export default function LicenseModal({
         setTimeout(() => {
           onActivated?.();
           if (canClose) onClose?.();
-        }, 1200);
+          setStatus('idle');
+          setKey('');
+        }, 800);
       } else {
         setStatus('error');
         setErrorMsg(result?.error || (isId ? 'Aktivasi gagal. Coba lagi.' : 'Activation failed. Try again.'));

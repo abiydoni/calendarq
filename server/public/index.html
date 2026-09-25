@@ -343,8 +343,11 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Custom Key (Kosongkan untuk generate otomatis)</label>
-            <input type="text" id="newCustomKey" class="form-input" placeholder="Contoh: CQ-PREMIUM-2026-X1Y2">
+            <label class="form-label">License Key (Otomatis Dibuat)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="newCustomKey" class="form-input" readonly style="font-family: monospace; font-weight: 700; font-size: 14px; letter-spacing: 1px; background: rgba(0, 0, 0, 0.35); color: #818cf8; border: 1px solid rgba(129, 140, 248, 0.4); cursor: default;" placeholder="CQ-XXXX-XXXX-XXXX">
+              <button type="button" class="btn btn-secondary" id="btnRegenerateKey" title="Acak Key Lain">🔄 Acak</button>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Catatan Admin</label>
